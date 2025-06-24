@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const cardConfig = [
         {
-            unlockDate: '2025-06-25T00:23:40', // Card 1: Unlocked by default (past date)
+            unlockDate: '2025-06-25T00:23:30', // Card 1: Unlocked by default (past date)
             content: `<h3>Mi Amor,</h3><p>Para nuestro primer día, he querido empezar esta pequeña aventura contigo, una carta por cada día hasta que estemos más cerca. He estado pensando mucho en ti, en nosotros, y en la increíble fortuna que tengo de tenerte en mi vida. A veces me detengo en medio de mi día y sonrío sin motivo aparente, y la razón eres siempre tú. Tu existencia ha llenado mis días de una luz que no sabía que me faltaba.\n\nEsta primera carta es una promesa: la promesa de mis pensamientos, de mi cariño diario, y de mi amor incondicional. Cada palabra que escribo aquí es un reflejo de lo que siento, un torrente de emociones que a menudo me cuesta expresar en voz alta. Eres mi musa, mi compañera, mi mejor amiga y el amor de mi vida. Espero que esta pequeña sorpresa te llene de alegría y te haga sentir tan especial como tú me haces sentir a mí cada segundo. Te amo más de lo que las palabras pueden describir.</p>`
         },
         {
