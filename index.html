@@ -1,0 +1,45 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un Mensaje Para Mi Amor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="password-overlay">
+        <div id="password-box">
+            <h2>Un mensaje para ti</h2>
+            <p>Introduce la contraseña para continuar.</p>
+            <form id="password-form">
+                <div class="password-input-container">
+                    <input type="password" id="password-input" placeholder="Contraseña">
+                    <button type="button" id="toggle-password">👁️</button>
+                </div>
+                <button type="submit">Entrar</button>
+            </form>
+            <p id="error-message" class="hidden">Contraseña incorrecta. Inténtalo de nuevo.</p>
+        </div>
+    </div>
+
+    <div class="container hidden">
+        <h1>Cada día que pasa, te quiero más</h1>
+        <p class="subtitle">Y cada vez falta menos para vernos, mi amor.</p>
+        <div class="cards-container" id="cardsContainer">
+            <!-- Las cartas se generarán con JavaScript -->
+        </div>
+        <p class="footer-note">Una nueva carta se desbloquea cada día. ¡Vuelve mañana!</p>
+    </div>
+
+    <div id="modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="modal-letter-content"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
