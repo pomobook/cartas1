@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    /**
+     * @tweakable The PIN to access the admin panel.
+     */
+    const ADMIN_PIN = "1163";
+
     /*
      * @tweakable The password to access the page.
      */
@@ -14,6 +19,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const togglePasswordButton = document.getElementById('toggle-password');
     const errorMessage = document.getElementById('error-message');
     const container = document.querySelector('.container');
+
+    /**
+     * @tweakable A unique ID for the database that stores the access count. Change this to reset the counter.
+     * You can use something like a new date or a random string (e.g., 'love-counter-02').
+     */
+    const DB_NAMESPACE = 'siemprejuntos-access-counter-v1';
+
+    // --- Database Service for Access Count ---
+    const DB_URL = `https://api.jsonbin.io/v3/b`;
+    const getStorageUrl = () => `https://api.jsonbin.io/v3/kv/${DB_NAMESPACE}`;
+
+    async function getAccessCount() {
+        try {
+            const response = await fetch(getStorageUrl());
+            if (!response.ok) {
+                // If the key doesn't exist, count is 0
+                if (response.status === 404) return 0;
+                throw new Error(`Failed to fetch count: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data.metadata.reads > 0 ? data.record[DB_NAMESPACE] : 0;
+        } catch (error) {
+            console.error("Error getting access count:", error);
+            return 'N/A';
+        }
+    }
+
+    async function incrementAccessCount() {
+        try {
+            const currentCount = await getAccessCount();
+            if (typeof currentCount !== 'number') return; // Don't try to increment if there was an error
+
+            const newCount = currentCount + 1;
+
+            const response = await fetch(getStorageUrl(), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [DB_NAMESPACE]: newCount }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to update count: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error("Error incrementing access count:", error);
+        }
+    }
 
     // Function to hash a string using SHA-256
     async function hashString(str) {
@@ -41,6 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (enteredPasswordHash === CORRECT_PASSWORD_HASH) {
             // Correct password
             passwordOverlay.style.opacity = '0';
+            
+            // Increment global access count
+            await incrementAccessCount();
+
             setTimeout(() => {
                 passwordOverlay.classList.add('hidden');
                 container.classList.remove('hidden');
@@ -65,6 +121,59 @@ document.addEventListener('DOMContentLoaded', () => {
         togglePasswordButton.textContent = type === 'password' ? '👁️' : '🙈';
     });
 
+    // --- Admin Panel Logic ---
+    const adminBtn = document.getElementById('admin-btn');
+    const pinOverlay = document.getElementById('pin-overlay');
+    const pinForm = document.getElementById('pin-form');
+    const pinInput = document.getElementById('pin-input');
+    const pinErrorMessage = document.getElementById('pin-error-message');
+    const adminPanelOverlay = document.getElementById('admin-panel-overlay');
+    const accessCountEl = document.getElementById('access-count');
+    const closeAdminPanelBtn = document.getElementById('close-admin-panel');
+
+    adminBtn.addEventListener('click', () => {
+        pinOverlay.classList.remove('hidden');
+        pinInput.focus();
+    });
+
+    pinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (pinInput.value === ADMIN_PIN) {
+            // Correct PIN
+            pinOverlay.classList.add('hidden');
+            pinInput.value = '';
+            pinErrorMessage.classList.add('hidden');
+
+            // Show admin panel and display count
+            accessCountEl.textContent = '...'; // Show loading state
+            adminPanelOverlay.classList.remove('hidden');
+            const count = await getAccessCount();
+            accessCountEl.textContent = count;
+
+        } else {
+            // Incorrect PIN
+            pinInput.classList.add('error');
+            pinErrorMessage.classList.remove('hidden');
+            setTimeout(() => {
+                pinInput.classList.remove('error');
+            }, 500);
+            pinInput.value = '';
+        }
+    });
+    
+    function closeAdminOverlays() {
+        pinOverlay.classList.add('hidden');
+        adminPanelOverlay.classList.add('hidden');
+    }
+
+    closeAdminPanelBtn.addEventListener('click', closeAdminOverlays);
+    pinOverlay.addEventListener('click', (e) => {
+        if (e.target === pinOverlay) closeAdminOverlays();
+    });
+    adminPanelOverlay.addEventListener('click', (e) => {
+        if (e.target === adminPanelOverlay) closeAdminOverlays();
+    });
+
     // --- Main Application Logic (runs after successful login) ---
     function initializeApp() {
         /**
@@ -74,28 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         const cardConfig = [
             {
-                unlockDate: '2025-06-24T23:25:00', // Card 1
-                content: `<h3>Hola mi niña,</h3><p>hoy es el primer mensaje/texto que te escribo de muuuuuchos que te voy escribir, a ver tampoco son tantos en vrd. Te los escribo porq me hace mucha ilusion que veas mis mensajes cariñosos, y me gusta mucho escribirtelo porq me sirve para poder expresarme mejor y hacerte saber como estoy. Me encanta que hoy te lo hayas pasado super bien en tu primer dia del viaje, yo ya sabia que te lo ibas a pasar bien amor. Ayer era normal que no tuvieras muchas ganas porque al principio da uun poco de pereza, pero luego ya veras que va a ser uno de los viajes que mas recuerdes. Aprovecha mucho a estar con tus amigas, con tus amigos, a la gente que conoces del insti, porque el año que viene vas a empezar una nueva etapa por asi decirlo ( aunque podras seguir viendolos sabes, pero no sera igual ) quiero que te lo pases genial y que disfrtes al maximo. Si tus amigas a veces te agobian o te molestan o te picas o algo quiero que dejes de lado esas cosas porq estos viajes estan para disfrutar, no para eso. 
-
-de verdad que amor no puedo parar de pensar en ti, no se que me pasa estos dias, pero estoy como super enamorado de ti. Es una sensacion que cada vez es mayor, es que nunca he querido a nadie como tu. No quiero ser pesado diciendote todo esto. Te quiero como a nadie enserio. Solo quiero tener en mi vida a alguien como, no quiero pasar mi adolescencia liandome con mil chicas ni estando de lios ni mierdas, lo unico que quiero es poder estar contigo. Se que tu eres la chica con la que quiero estar y la que de verdad quiero. De verdad que lo que me haces sentir no lo hace nadie. Quiero que podamos estar mejor porque estamos pasando una epoca un poco mala, a mi me esta costando mucho llevar todo y por eso muchas veces me rallo y le doy mil vueltas a todos, ya sabes como soy. Estoy intentando llevar todo lo mejor que puedo pero muchas veces es dificil no rallarse amor, y mas en una persona q le da mil vueltas a la minima cosa, entiende que quiza a veces me pase esto. Estoy trabajando en mi, en no rallarme tanto estos dias y disfrtar mas todo. 
-
-De verdad que te quiero muchisimo, ayer cuando te di el ultimo abrazo a ldespedirnos senti como muchisimas mariposas en la barriga, no me quiero enrollar mucho, pero se que quiero estar contigo. Te quiero arantxa, daria todo lo que hiciera falta por ti. No puedo quererte mas. 
-
-disfruta muchisimo el viaje y ya me vas contando, no quiero que sea una preocupacion para ti el escribirme, yo estos dias voy a centrarme en el gimnasio y en leer y salir con mis amigos para poder tener la mente algo mas ocupada y no pensar tanto en mil mierdas. Te quiero muchisimo, lo unico que quiero en mi vida es que seas feliz. 
-
-no hay nadie como tu en el mundo, eres unica. mi unico deseo en la vida es poder volver a estar bien juntos</p>`
+                unlockDate: '2025-06-24T23:40:00', // Card 1
+                content: `<h3>Mi Amor,</h3><p>Para nuestro primer día, he querido empezar esta pequeña aventura contigo, una carta por cada día hasta que estemos más cerca. He estado pensando mucho en ti, en nosotros, y en la increíble fortuna que tengo de tenerte en mi vida. A veces me detengo en medio de mi día y sonrío sin motivo aparente, y la razón eres siempre tú. Tu existencia ha llenado mis días de una luz que no sabía que me faltaba.\n\nEsta primera carta es una promesa: la promesa de mis pensamientos, de mi cariño diario, y de mi amor incondicional. Cada palabra que escribo aquí es un reflejo de lo que siento, un torrente de emociones que a menudo me cuesta expresar en voz alta. Eres mi musa, mi compañera, mi mejor amiga y el amor de mi vida. Espero que esta pequeña sorpresa te llene de alegría y te haga sentir tan especial como tú me haces sentir a mí cada segundo. Te amo más de lo que las palabras pueden describir.</p>`
             },
             {
                 unlockDate: '2025-06-25T23:40:00', // Card 2
-                content: `<h3>Hola, Preciosa,</h3><p>No se si estas leyendo mis cartas pero igualmente las puedes leer cuando quieras. Hoy ya es el segundo texto de 7. Mi niña espero que te lo estes pasando super bien en este viaje, quiero que disfrutes al maximo todo mi amor. Ya sabes que lo unico que quiero en la vida es que seas feliz, es lo que unico que quiero. Para mi estan siendo dias dificiles porque aunque solo llevemos 2 dias sin vernos, para mi es una eternidad jajaja, tengo muchisimas ganas de verte, no paro de pensar en ti amor. siento que estoy super enamorado de ti.
-
-Me esta ayudando mucho no hablar tanto en realidad, porque siento que no estoy teniendo tanta dependencia en hablar todo el rato, siento que antes dependia un poco en ello y creo que no era sano. siento que no hace falta q estemos hablando todo el rato para poder estar juntos y enamorados. De verdad mi niña que te quiero muchisimo.
-
-Hoy he estado mucho mejor que ayer, ayer la verdad que me ralle muuuucho, pero hoy he estado mejor, con mis amigos en la piscina y eso, eso me ayuda mazo a tener la mente ocupada y estar mejor.
-
-Cuando hable con Rial de lo de su novia por la noche me ralle mazo. Pero porque hoy en dia es como que es super dificil tener a una persona que te quiera de verdad y que quiera estar contigo, es como que esta de moda irse con mil chicos a la vez y poner los cuernos mil veces. Yo amor ya sabes que confio en ti, aunque hay veces que tengo bajones de autoestima y eso hace q me ralle un poco, pero yo se que no lo harias. De todas formas, algo que quiero decir, es que si lo haces o si te empieza a gustar o a molar alguien, quiero que me lo digas, creo que es mejor decir las cosas antes que ocultarlas, ya que puede ser peor. Lo mas importante en una relacion me parece la comunicacion y es algo que tenemos que ir arreglando con el tiempo.
-
-Cada dia que pasa te quiero mas, eres la niña con la que siempre soñe, espero que poco a poco podamos seguir mejorando. Te quiero como a nadie enserio, daria todo lo que fuera por ti. No se como expresarte todo lo que te quiero enserio, es que estoy super enamorad (siento que fueran como los primeros dias jajajaj) Tengo mazo sentimientos y no paro de pensar en ti.</p>`
+                content: `<h3>Hola, Preciosa,</h3><p>Hoy, en nuestra segunda carta, no podía dejar de pensar en todas nuestras primeras veces. ¿Recuerdas nuestro primer viaje juntos? Esa sensación de aventura, de descubrir nuevos lugares contigo a mi lado, es algo que atesoro con todo mi ser. Cada risa compartida, cada mirada cómplice, cada mano sostenida se ha convertido en un pilar fundamental de mi felicidad. Esos recuerdos no son solo momentos pasados; son la base sobre la que construimos nuestro futuro.\n\nPienso en el futuro y me emociono. Imagino todos los lugares que aún no hemos explorado, todas las comidas que no hemos probado, todas las canciones que bailaremos. Pero lo más importante es que en cada una de esas visiones, estás tú. Mi amor por ti crece con cada recuerdo que creamos y con cada sueño que compartimos. Gracias por ser mi compañera de aventuras. No puedo esperar a crear miles de recuerdos más contigo. Te quiero hasta el infinito y más allá.</p>`
             },
             {
                 unlockDate: '2025-06-26T23:40:00', // Card 3
