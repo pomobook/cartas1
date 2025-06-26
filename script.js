@@ -20,53 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessage = document.getElementById('error-message');
     const container = document.querySelector('.container');
 
-    /**
-     * @tweakable A unique ID for the database that stores the access count. Change this to reset the counter.
-     * You can use something like a new date or a random string (e.g., 'love-counter-02').
-     */
-    const DB_NAMESPACE = 'siemprejuntos-access-counter-v1';
-
-    // --- Database Service for Access Count ---
-    const DB_URL = `https://api.jsonbin.io/v3/b`;
-    const getStorageUrl = () => `https://api.jsonbin.io/v3/kv/${DB_NAMESPACE}`;
-
-    async function getAccessCount() {
-        try {
-            const response = await fetch(getStorageUrl());
-            if (!response.ok) {
-                // If the key doesn't exist, count is 0
-                if (response.status === 404) return 0;
-                throw new Error(`Failed to fetch count: ${response.statusText}`);
-            }
-            const data = await response.json();
-            return data.metadata.reads > 0 ? data.record[DB_NAMESPACE] : 0;
-        } catch (error) {
-            console.error("Error getting access count:", error);
-            return 'N/A';
-        }
-    }
-
-    async function incrementAccessCount() {
-        try {
-            const currentCount = await getAccessCount();
-            if (typeof currentCount !== 'number') return; // Don't try to increment if there was an error
-
-            const newCount = currentCount + 1;
-
-            const response = await fetch(getStorageUrl(), {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ [DB_NAMESPACE]: newCount }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to update count: ${response.statusText}`);
-            }
-        } catch (error) {
-            console.error("Error incrementing access count:", error);
-        }
-    }
-
     // Function to hash a string using SHA-256
     async function hashString(str) {
         const encoder = new TextEncoder();
@@ -94,8 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Correct password
             passwordOverlay.style.opacity = '0';
             
-            // Increment global access count
-            await incrementAccessCount();
+            // Increment access count in localStorage
+            try {
+                let count = parseInt(localStorage.getItem('pageAccessCount') || '0', 10);
+                count++;
+                localStorage.setItem('pageAccessCount', count.toString());
+            } catch (error) {
+                console.error('Could not update access count in localStorage:', error);
+            }
 
             setTimeout(() => {
                 passwordOverlay.classList.add('hidden');
@@ -136,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pinInput.focus();
     });
 
-    pinForm.addEventListener('submit', async (e) => {
+    pinForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (pinInput.value === ADMIN_PIN) {
             // Correct PIN
@@ -145,10 +104,14 @@ document.addEventListener('DOMContentLoaded', () => {
             pinErrorMessage.classList.add('hidden');
 
             // Show admin panel and display count
-            accessCountEl.textContent = '...'; // Show loading state
+            try {
+                const count = localStorage.getItem('pageAccessCount') || '0';
+                accessCountEl.textContent = count;
+            } catch (error) {
+                accessCountEl.textContent = 'N/A';
+                console.error('Could not read access count from localStorage:', error);
+            }
             adminPanelOverlay.classList.remove('hidden');
-            const count = await getAccessCount();
-            accessCountEl.textContent = count;
 
         } else {
             // Incorrect PIN
