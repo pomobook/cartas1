@@ -1,14 +1,51 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    /**
-     * @tweakable The PIN to access the admin panel.
-     */
-    const ADMIN_PIN = "1163";
-
     /*
      * @tweakable The password to access the page.
      */
     const pagePassword = "siemprejuntos";
+    
+    /**
+     * @tweakable Configuration for the global visitor counter.
+     * `namespace` and `key` create a unique URL for your counter.
+     * Change these if you want to reset the counter or use it on another project.
+     */
+    const counterConfig = {
+        enabled: true,
+        namespace: "un-mensaje-para-mi-amor",
+        key: "page-visits"
+    };
+
+    // --- Visitor Counter Logic ---
+    const visitorCounterElement = document.getElementById('visitor-counter');
+    const counterValueElement = document.getElementById('counter-value');
+
+    async function updateVisitorCount() {
+        if (!counterConfig.enabled || !visitorCounterElement || !counterValueElement) {
+            if (visitorCounterElement) visitorCounterElement.classList.add('hidden');
+            return;
+        }
+
+        const { namespace, key } = counterConfig;
+        const apiUrl = `https://api.counterapi.dev/v1/${namespace}/${key}/up`;
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`Counter API response not OK: ${response.status}`);
+            }
+            const data = await response.json();
+            counterValueElement.textContent = data.count.toLocaleString('es-ES');
+            visitorCounterElement.classList.remove('hidden');
+        } catch (error) {
+            console.error("Failed to update visitor count:", error);
+            // Hide the counter if there's an error to not show a broken feature
+            visitorCounterElement.classList.add('hidden');
+        }
+    }
+    
+    // Update the counter as soon as the page loads
+    updateVisitorCount();
 
     // --- Password Protection Logic ---
     let CORRECT_PASSWORD_HASH = '';
@@ -46,16 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (enteredPasswordHash === CORRECT_PASSWORD_HASH) {
             // Correct password
             passwordOverlay.style.opacity = '0';
-            
-            // Increment access count in localStorage
-            try {
-                let count = parseInt(localStorage.getItem('pageAccessCount') || '0', 10);
-                count++;
-                localStorage.setItem('pageAccessCount', count.toString());
-            } catch (error) {
-                console.error('Could not update access count in localStorage:', error);
-            }
-
             setTimeout(() => {
                 passwordOverlay.classList.add('hidden');
                 container.classList.remove('hidden');
@@ -78,63 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
         passwordInput.setAttribute('type', type);
         // Toggle icon/text
         togglePasswordButton.textContent = type === 'password' ? '👁️' : '🙈';
-    });
-
-    // --- Admin Panel Logic ---
-    const adminBtn = document.getElementById('admin-btn');
-    const pinOverlay = document.getElementById('pin-overlay');
-    const pinForm = document.getElementById('pin-form');
-    const pinInput = document.getElementById('pin-input');
-    const pinErrorMessage = document.getElementById('pin-error-message');
-    const adminPanelOverlay = document.getElementById('admin-panel-overlay');
-    const accessCountEl = document.getElementById('access-count');
-    const closeAdminPanelBtn = document.getElementById('close-admin-panel');
-
-    adminBtn.addEventListener('click', () => {
-        pinOverlay.classList.remove('hidden');
-        pinInput.focus();
-    });
-
-    pinForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (pinInput.value === ADMIN_PIN) {
-            // Correct PIN
-            pinOverlay.classList.add('hidden');
-            pinInput.value = '';
-            pinErrorMessage.classList.add('hidden');
-
-            // Show admin panel and display count
-            try {
-                const count = localStorage.getItem('pageAccessCount') || '0';
-                accessCountEl.textContent = count;
-            } catch (error) {
-                accessCountEl.textContent = 'N/A';
-                console.error('Could not read access count from localStorage:', error);
-            }
-            adminPanelOverlay.classList.remove('hidden');
-
-        } else {
-            // Incorrect PIN
-            pinInput.classList.add('error');
-            pinErrorMessage.classList.remove('hidden');
-            setTimeout(() => {
-                pinInput.classList.remove('error');
-            }, 500);
-            pinInput.value = '';
-        }
-    });
-    
-    function closeAdminOverlays() {
-        pinOverlay.classList.add('hidden');
-        adminPanelOverlay.classList.add('hidden');
-    }
-
-    closeAdminPanelBtn.addEventListener('click', closeAdminOverlays);
-    pinOverlay.addEventListener('click', (e) => {
-        if (e.target === pinOverlay) closeAdminOverlays();
-    });
-    adminPanelOverlay.addEventListener('click', (e) => {
-        if (e.target === adminPanelOverlay) closeAdminOverlays();
     });
 
     // --- Main Application Logic (runs after successful login) ---
