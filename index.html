@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -22,6 +23,7 @@
             </form>
             <p id="error-message" class="hidden">Contraseña incorrecta. Inténtalo de nuevo.</p>
         </div>
+        <button id="admin-btn" title="Panel de Administrador">⚙️</button>
     </div>
 
     <div class="container hidden">
@@ -31,6 +33,27 @@
             <!-- Las cartas se generarán con JavaScript -->
         </div>
         <p class="footer-note">Una nueva carta se desbloquea cada día. ¡Vuelve mañana!</p>
+    </div>
+
+    <div id="pin-overlay" class="admin-overlay hidden">
+        <div class="admin-box">
+            <h2>Panel de Administrador</h2>
+            <p>Introduce el PIN para continuar.</p>
+            <form id="pin-form">
+                <input type="password" id="pin-input" placeholder="PIN" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="one-time-code">
+                <button type="submit">Acceder</button>
+            </form>
+            <p id="pin-error-message" class="hidden">PIN incorrecto.</p>
+        </div>
+    </div>
+
+    <div id="admin-panel-overlay" class="admin-overlay hidden">
+        <div class="admin-box">
+            <h2>Estadísticas de Acceso</h2>
+            <p>Número de accesos desde este navegador:</p>
+            <div id="access-count">0</div>
+            <button id="close-admin-panel">Cerrar</button>
+        </div>
     </div>
 
     <div id="modal" class="modal-overlay">
