@@ -23,12 +23,9 @@
             </form>
             <p id="error-message" class="hidden">Contraseña incorrecta. Inténtalo de nuevo.</p>
         </div>
-        <div id="bottom-right-corner">
-            <div id="admin-panel-trigger" title="Admin Panel">⚙️</div>
-            <div id="visitor-counter" class="hidden">
-                <span class="counter-label">Visitas:</span>
-                <span id="counter-value">...</span>
-            </div>
+        <div id="visitor-counter" class="hidden">
+            <span class="counter-label">Visitas:</span>
+            <span id="counter-value">...</span>
         </div>
     </div>
 
@@ -41,40 +38,13 @@
         <p class="footer-note">Una nueva carta se desbloquea cada día. ¡Vuelve mañana!</p>
     </div>
 
-    <div id="modal" class="modal-overlay hidden">
+    <div id="modal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-button">&times;</span>
             <div id="modal-letter-content"></div>
         </div>
     </div>
 
-    <div id="admin-overlay" class="modal-overlay hidden">
-        <div id="admin-panel">
-            <div id="admin-pin-section">
-                <h3>Panel de Administración</h3>
-                <p>Introduce el PIN para ver las estadísticas.</p>
-                <form id="admin-pin-form">
-                    <input type="password" id="admin-pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••">
-                    <button type="submit">Acceder</button>
-                </form>
-                <p id="admin-error-message" class="hidden">PIN incorrecto.</p>
-                 <button id="admin-cancel-button">Cancelar</button>
-            </div>
-            <div id="admin-data-section" class="hidden">
-                <div class="admin-header">
-                    <h3>Estadísticas de Visitas</h3>
-                    <span class="close-button" id="admin-close-button">&times;</span>
-                </div>
-                <p class="stats-note">Mostrando datos simulados para <strong id="stats-count">0</strong> visitas.</p>
-                <div id="visitor-list-container">
-                    <div id="visitor-list">
-                        <!-- Visitor data will be populated here by JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script type="module" src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
